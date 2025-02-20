@@ -45,10 +45,8 @@ public class FraudDetectionService {
     private static final boolean NO_FRAUD_RISK = false;
 
 
-    public FraudDetectionService(TransactionRepository transactionRepository,
-                                 FraudSignalRepository fraudSignalRepository) {
+    public FraudDetectionService(TransactionRepository transactionRepository) {
         this.transactionRepository = transactionRepository;
-        this.fraudSignalRepository = fraudSignalRepository;
     }
 
     /**
@@ -63,14 +61,25 @@ public class FraudDetectionService {
      */
     @Transactional
     public TransactionResponseDto scoreTransaction(TransactionRequestDto transactionRequestDto) throws IllegalArgumentException {
-        logger.info("Processing transaction request: {}", transactionRequestDto);
+        if (transactionRequestDto == null) {
+            throw new IllegalArgumentException(TRANSACTION_DETAILS_NULL_OR_EMPTY);
+        }
+
         Transaction unsavedTransaction = mapTransactionRequestToTransaction(transactionRequestDto);
+        if (unsavedTransaction == null) {
+            throw new IllegalStateException("Mapping transaction request to entity resulted in null");
+        }
+
         logger.info("Mapped transaction request to Transaction entity: {}", unsavedTransaction);
+
         Transaction savedTransaction = transactionRepository.saveAndFlush(unsavedTransaction);
         logger.info("Transaction saved with ID: {}", savedTransaction.getTransactionId());
+
         List<FraudSignal> signals = generateFraudSignals(savedTransaction);
         logger.info("Generated {} fraud signals for transaction ID: {}", signals.size(), savedTransaction.getTransactionId());
+
         return toTransactionResponseDto(savedTransaction, signals);
+
     }
 
     /**
@@ -80,7 +89,7 @@ public class FraudDetectionService {
      *                               to be mapped to a Transaction entity
      * @return the mapped Transaction entity
      */
-    private Transaction mapTransactionRequestToTransaction(TransactionRequestDto transactionRequestDto) {
+    Transaction mapTransactionRequestToTransaction(TransactionRequestDto transactionRequestDto) {
         return TransactionMapper.mapToEntity(transactionRequestDto);
     }
 
@@ -352,6 +361,7 @@ public class FraudDetectionService {
         signal.setSignalType(FraudSignal.SignalType.IP_ADDRESS);
 
         if (isPrivateIp(ipAddress)) {
+            logger.info("IP address {} is private", ipAddress);
             signal.setPotentialFraud(true);
             signal.setDetails(List.of(IP_ADDRESS_SUSPICIOUS_RANGE));
         } else {
