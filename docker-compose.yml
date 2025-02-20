@@ -11,7 +11,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       # Runs once for a new database:
-#      - ./init-scripts:/docker-entrypoint-initdb.d:ro
+  #      - ./init-scripts:/docker-entrypoint-initdb.d:ro
 
   # Flyway Container
   flyway:
@@ -26,6 +26,22 @@ services:
     volumes:
       - ./src/main/resources/db/migration:/flyway/db/migration
 
+  # Spring Boot Application Container
+  spring_app:
+    image: gradle:jdk21-alpine
+    container_name: spring_app_container
+    working_dir: /app
+    volumes:
+      - .:/app
+      - gradle_cache:/home/gradle/.gradle
+    command: [ "gradle", "bootRun" ]
+    ports:
+      - "8080:8080"
+    depends_on:
+      - fraud_detection_db
+      - flyway
+
 
 volumes:
   postgres_data:
+  gradle_cache:
