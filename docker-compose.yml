@@ -1,0 +1,31 @@
+services:
+  # Postgres Container
+  fraud_detection_db:
+    image: postgres:17-alpine
+    environment:
+      - POSTGRES_DB=fraud_detection
+      - POSTGRES_USER=fraud_api_user
+      - POSTGRES_PASSWORD=fraud_api_password!
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # Runs once for a new database:
+#      - ./init-scripts:/docker-entrypoint-initdb.d:ro
+
+  # Flyway Container
+  flyway:
+    image: flyway/flyway:11-alpine
+    depends_on:
+      - fraud_detection_db
+    command:
+      - -url=jdbc:postgresql://fraud_detection_db:5432/fraud_detection
+      - -user=fraud_api_user
+      - -password=fraud_api_password!
+      - migrate
+    volumes:
+      - ./src/main/resources/db/migration:/flyway/db/migration
+
+
+volumes:
+  postgres_data:
