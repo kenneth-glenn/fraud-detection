@@ -1,0 +1,34 @@
+{
+	"info": {
+		"_postman_id": "686a485a-a0f2-4817-9425-f31b7386248c",
+		"name": "Fraud Detection Project",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "438310"
+	},
+	"item": [
+		{
+			"name": "Returns No Fraud Signals",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "Returns No Fraud Signals Copy",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "Returns with Fraud Signals",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		}
+	]
+}
